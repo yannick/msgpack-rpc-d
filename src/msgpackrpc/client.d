@@ -68,8 +68,6 @@ class Client(alias Protocol)
         } else {
             future.error = error;
         }
-
-        getEventDriver().exitEventLoop();
     }
 
   private:
