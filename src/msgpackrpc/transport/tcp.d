@@ -138,6 +138,7 @@ class ClientSocket(Client) : BaseSocket
                 ubyte[] data = new ubyte[](input.leastSize);
             input.read(data);
             proccessRequest(data);
+            logTrace("- onRead Finished");
             break;
         } while (_connection.connected);
     }

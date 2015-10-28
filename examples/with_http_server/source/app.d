@@ -5,7 +5,13 @@ void test(HTTPServerRequest req, HTTPServerResponse res)
 {
     string enhanceme = req.query.get("enhanceme", "D");
     auto client = new TCPClient(Endpoint(18800, "127.0.0.1"));
-    auto enhanced = client.call!string("enhance", enhanceme);
+    import msgpackrpc.client : Future;
+    logDebug("Call Async Operation\n\n");
+    Future f = client.callAsync("enhance", enhanceme);
+    logDebug("\n\nCalled Async Operation");
+    string enhanced = f.get!string();
+
+
     res.writeBody("enhanced Result: " ~ enhanced ~ "\n");
 }
 
