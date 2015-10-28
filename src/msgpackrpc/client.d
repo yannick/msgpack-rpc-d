@@ -10,7 +10,7 @@ import msgpackrpc.transport.tcp;
 
 import msgpack;
 import vibe.vibe;
-
+import vibe.core.log;
 import std.array;
 import std.traits;
 
@@ -97,18 +97,22 @@ alias Client!(msgpackrpc.transport.tcp) TCPClient;
 class Future
 {
     alias void delegate(Future) Callback;
-
+ 
+    this()
+    {
+        logTrace("create manual event");
+        _yet = getEventDriver().createManualEvent();
+    }
   private:
     Value _value;
     Callback _callback;
     bool _err;
-    bool _yet = true;
+    ManualEvent _yet;
 
   public:
     void join()
     {
-        while (_yet)
-            getEventDriver().runEventLoopOnce();
+        _yet.wait();
     }
 
     @property
@@ -140,7 +144,8 @@ class Future
 
         void result(ref Value res)
         {
-            _yet = false;
+            logTrace("emitting, result");
+            _yet.emit();
             _value = res;
 
             if (_callback !is null)
@@ -159,7 +164,8 @@ class Future
 
         void error(ref Value err)
         {
-            _yet = false;
+            logTrace("emitting, error");
+            _yet.emit();
             _err = true;
             _value = err;
 

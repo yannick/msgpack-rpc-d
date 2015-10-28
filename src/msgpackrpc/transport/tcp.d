@@ -11,6 +11,7 @@ import msgpackrpc.server;
 import msgpack;
 import vibe.core.net;
 import vibe.core.driver;
+import vibe.core.log;
 
 import std.conv;
 
@@ -127,6 +128,10 @@ class ClientSocket(Client) : BaseSocket
         do {
             //if (!input.dataAvailableForRead)
             //    return;
+            logTrace("calling waitForData");
+            import std.datetime;
+            _connection.waitForData(dur!"seconds"(1));
+            logTrace(" waitForData done");
             static if (size_t.sizeof == 4)
                 ubyte[] data = new ubyte[](cast(uint)input.leastSize);
             else
