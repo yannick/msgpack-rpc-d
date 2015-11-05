@@ -13,19 +13,22 @@ import vibe.core.net;
 import vibe.core.driver;
 
 import std.conv;
-
+import std.datetime;
 
 abstract class BaseSocket
 {
   private:
     TCPConnection _connection;
     StreamingUnpacker _unpacker;
+    Duration _timeout;
 
   public:
-    this(TCPConnection connection)
+    this(TCPConnection connection, Duration timeout = 2.seconds)
     {
         _connection = connection;
         _unpacker = StreamingUnpacker([], 2048);
+        _timeout = timeout;
+
     }
 
     void close()
@@ -58,6 +61,7 @@ abstract class BaseSocket
         InputStream input = _connection;
 
         do {
+            _connection.waitForData(_timeout);
             static if (size_t.sizeof == 4)
                 auto size = cast(uint)input.leastSize;
             else
@@ -114,10 +118,11 @@ class ClientSocket(Client) : BaseSocket
     Client _client;
 
   public:
-    this(TCPConnection connection, Client client)
+    this(TCPConnection connection, Client client, Duration timeout = 2.seconds)
     {
         super(connection);
         _client = client;
+        _timeout = timeout;
     }
 
     override void onRead()
@@ -127,6 +132,7 @@ class ClientSocket(Client) : BaseSocket
         do {
             //if (!input.dataAvailableForRead)
             //    return;
+            _connection.waitForData(_timeout);
             static if (size_t.sizeof == 4)
                 ubyte[] data = new ubyte[](cast(uint)input.leastSize);
             else
